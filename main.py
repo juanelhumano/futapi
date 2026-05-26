@@ -7,15 +7,12 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 app = FastAPI()
 
-ESPN_API = "https://site.api.espn.com/apis/site/v2/sports/soccer/scoreboard"
-
 
 @app.get("/")
 def home():
 
     return {
-        "status": "online",
-        "message": "API de partidos funcionando"
+        "status": "online"
     }
 
 
@@ -24,15 +21,22 @@ def get_matches():
 
     try:
 
+        today = datetime.utcnow().strftime("%Y%m%d")
+
+        espn_url = (
+            f"https://site.api.espn.com/apis/site/v2/"
+            f"sports/soccer/all/scoreboard?dates={today}"
+        )
+
         headers = {
             "User-Agent": "Mozilla/5.0"
         }
 
         response = requests.get(
-            ESPN_API,
+            espn_url,
             headers=headers,
             verify=False,
-            timeout=10
+            timeout=15
         )
 
         data = response.json()
@@ -45,12 +49,12 @@ def get_matches():
 
             try:
 
-                league = event["league"]["name"]
-
                 competitors = event["competitions"][0]["competitors"]
 
                 home = competitors[0]["team"]["displayName"]
                 away = competitors[1]["team"]["displayName"]
+
+                league = event["competitions"][0]["league"]["name"]
 
                 date_str = event["date"]
 
